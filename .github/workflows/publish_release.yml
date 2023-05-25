@@ -1,0 +1,41 @@
+name: Publish Release
+
+on:
+  release:
+    types:
+      - created
+
+jobs:
+  build:
+    name: Publish Release
+    permissions: write-all
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'  # 替换为您要使用的Python版本
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt  # 替换为您的项目依赖项的安装命令
+
+      - name: Install PyInstaller
+        run: |
+          pip install pyinstaller
+
+      - name: Run Command and Create Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # 执行您的命令，例如将Python代码转换为exe并发布到release
+          pyinstaller -F localizator.py
+          $tag_name = $env:github_ref -replace '^refs/tags/', ''
+          echo "gh release upload ${tag_name} dist/localizator.exe"
+          gh release upload ${tag_name} dist/localizator.exe
+
